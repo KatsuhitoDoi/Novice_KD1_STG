@@ -1,6 +1,6 @@
 ﻿#include <Novice.h>
 
-const char kWindowTitle[] = "Katsuhito_D_タイトル";
+const char kWindowTitle[] = "Katsuhito_D_タイトル ";
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -53,6 +53,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//エネミー
 	int enemyGH =
 		Novice::LoadTexture("./NoviceResources/monster.png");
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
