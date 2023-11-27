@@ -21,23 +21,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int playerSpeed = 5;
 
 	//弾
-	int bulletPosX[5] = { 0 };
-	int bulletPosY[5] = { 0 };
-	int bulletRadius[5] = {8};
-	int bulletSpeed[5] = { 1 };
-	int isBulletShot[5] = { 0 };
+	int bulletPosX[10] = { 0 };
+	int bulletPosY[10] = { 0 };
+	int bulletRadius[10] = {8,8,8,8,8,8,8,8,8,8};
+	int bulletSpeed[10] = { 10,10,10,10,10,10,10,10,10,10 };
+	bool isBulletShot[10] = { true };
 
+	int coolTime = 0;
+	
 	//敵
-	int enemyPosX = 640;
-	int enemyPosY = 100;
-	int enemyRadius = 20;
-	int enemySpeed = 2;
+	int enemyPosX[10] = { 140,240,340,440,540,640,740,840,940,1040 };
+	int enemyPosY[10] = { 100,150,200,250,300,300,250,200,150,100 };
+	int enemyRadius[10] = { 20,20,20,20,20,20,20,20,20,20 };
+	int enemySpeed[10] = { 2,2,2,2,2,2,2,2,2,2 };
 	int enemyRespawnTimer = 100;
-	int isEnemyAlive = 1;
+	bool isEnemyAlive[10] = { true };
 
 	//敵に向かう弾
-	int bullet2enemyX = 0;
-	int bullet2enemyY = 0;
+	int bullet2enemyX[10] = { 0 };
+	int bullet2enemyY[10] = { 0 };
 	//float bullet2enemy = 0.0f;
 
 	//画像の読み込み
@@ -109,24 +111,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (playerPosY <= 15) {
 			playerPosY = 15;
 		}
-
+		
 		//弾の発射処理
-		for (int i = 0; i <= 4; i++) {
+		for (int i = 0; i <= 9; i++) {
 			if (isBulletShot[i] == false) {
-				if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+				if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0 && coolTime <= 0) {
+  					coolTime = 5;
 					isBulletShot[i] = true;
 					bulletPosX[i] = playerPosX + 15;//弾が中心から発射されるよう修正
 					bulletPosY[i] = playerPosY;
 				}
+				
+
 			}
 
 		}
 		
+		//弾のクールタイムの計算
+		if (coolTime >= 0) {
+			coolTime--;
+		}
+
 
 		//弾道計算
-		for (int i = 0; i <= 4; i++) {
-			if (isBulletShot[i] == 1) {
-				bulletPosY[i] -= bulletSpeed[5];
+		for (int i = 0; i <= 9; i++) {
+			if (isBulletShot[i] == true) {
+				bulletPosY[i] -= bulletSpeed[i];
 				if (bulletPosY[i] <= 0) {
 					bulletPosY[i] = -200;
 					isBulletShot[i] = false;
@@ -141,29 +151,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 
 		//敵の移動
-		if (isEnemyAlive) {
-			//敵を動かす（上から下に）
-			enemyPosY += enemySpeed;
+		for (int i = 0; i <= 9; i++) {
+			if (isEnemyAlive) {
+				//敵を動かす（横移動）
+				enemyPosX[i] += enemySpeed[i];
 
-			//下で反射
-			if (enemyPosY + enemyRadius >= 700) {
-				enemySpeed *= -1;
+				//右で反射
+				if (enemyPosX[i] + enemyRadius[i] >= 1260) {
+					enemySpeed[i] *= -1;
+				}
+
+				//左で反射
+				if (enemyPosX[i] - enemyRadius[i] <= 20) {
+					enemySpeed[i] *= -1;
+				}
 			}
 
-			//上で反射
-			if (enemyPosY - enemyRadius <= 0) {
-				enemySpeed *= -1;
-			}
 		}
+		
 
 		//敵と弾の衝突判定
-		for (int i = 0; i <= 4; i++) {
-			if (isEnemyAlive && isBulletShot) {
-				bullet2enemyX = enemyPosX - bulletPosX[i];
-				bullet2enemyY = enemyPosY - bulletPosY[i];
-				if ((enemyRadius + bulletRadius[i]) * (enemyRadius + bulletRadius[i])
-					>= (bullet2enemyX * bullet2enemyX) + (bullet2enemyY * bullet2enemyY)) {
-					isEnemyAlive = false;
+		for (int i = 0; i <= 9; i++) {
+			if (isEnemyAlive[i] == true && isBulletShot[i] == true) {
+				bullet2enemyX[i] = enemyPosX[i] - bulletPosX[i];
+				bullet2enemyY[i] = enemyPosY[i] - bulletPosY[i];
+				if ((enemyRadius[i] + bulletRadius[i]) * (enemyRadius[i] + bulletRadius[i])
+					>= (bullet2enemyX[i] * bullet2enemyX[i]) + (bullet2enemyY[i] * bullet2enemyY[i])) {
+					isEnemyAlive[i] = false;
 					isBulletShot[i] = false;
 				}
 			}
@@ -173,13 +187,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 
 		//復活用タイマー（敵が死んでいたらタイマースタート）
-		if (!isEnemyAlive) {
-			enemyRespawnTimer--;
-			if (enemyRespawnTimer <= 0) {
-				isEnemyAlive = true;
-				enemyRespawnTimer = 100;
+		for (int i = 0; i <= 9; i++) {
+			if (!isEnemyAlive[i]) {
+				enemyRespawnTimer--;
+				if (enemyRespawnTimer <= 0) {
+					isEnemyAlive[i] = true;
+					enemyRespawnTimer = 100;
+				}
 			}
 		}
+
+
+		
 
 
 		///
@@ -209,17 +228,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 		//弾の描画（三角）
-		for (int i = 0; i <= 4; i++) {
-			if (isBulletShot[5] = 1) {
+		for (int i = 0; i <= 9; i++) {
+			if (isBulletShot[i] == true) {
 				Novice::DrawTriangle(
 					(int)bulletPosX[i],
-					bulletPosY[i] - (int)bulletRadius,
+					bulletPosY[i] - (int)bulletRadius[i],
 
-					(int)bulletPosX[i] - (int)bulletRadius,
-					(int)bulletPosY[i] + (int)bulletRadius,
+					(int)bulletPosX[i] - (int)bulletRadius[i],
+					(int)bulletPosY[i] + (int)bulletRadius[i],
 
-					(int)bulletPosX[i] + (int)bulletRadius,
-					(int)bulletPosY[i] + (int)bulletRadius,
+					(int)bulletPosX[i] + (int)bulletRadius[i],
+					(int)bulletPosY[i] + (int)bulletRadius[i],
 					0xFFFF00FF, kFillModeSolid);
 			}
 		}
@@ -240,33 +259,44 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}*/
 
 		//敵の描画（画像）
-		if (isEnemyAlive) {
-			Novice::DrawSprite(
-				static_cast<int>(enemyPosX - enemyRadius),
-				static_cast<int>(enemyPosY - enemyRadius),
-				enemyGH,
-				2.0f, 2.0f,
-				0.0f,
-				0xFFFFFFFF);
+		for (int i = 0; i <= 9; i++) {
+			if (isEnemyAlive) {
+				Novice::DrawSprite(
+					static_cast<int>(enemyPosX[i] - enemyRadius[i]),
+					static_cast<int>(enemyPosY[i] - enemyRadius[i]),
+					enemyGH,
+					2.0f, 2.0f,
+					0.0f,
+					0xFFFFFFFF);
+			}
+
 		}
+
+		
 
 
 
 		//爆発の描画
-		if (!isEnemyAlive) {
-			enemyRespawnTimer--;
-			if (enemyRespawnTimer <= 100 || enemyRespawnTimer >= 75) {
-				Novice::DrawSprite(
-					static_cast<int>(enemyPosX - enemyRadius),
-					static_cast<int>(enemyPosY - enemyRadius),
-					explosionGH,
-					2.0f, 2.0f,
-					0.0f,
-					0xFFFFFFFF
-				);
+		for (int i = 0; i <= 9; i++) {
+			if (!isEnemyAlive) {
+				enemyRespawnTimer--;
+				if (enemyRespawnTimer <= 100 || enemyRespawnTimer >= 75) {
+					Novice::DrawSprite(
+						static_cast<int>(enemyPosX[i] - enemyRadius[i]),
+						static_cast<int>(enemyPosY[i] - enemyRadius[i]),
+						explosionGH,
+						2.0f, 2.0f,
+						0.0f,
+						0xFFFFFFFF
+					);
 
+				}
 			}
+
 		}
+
+
+		
 
 		///
 		/// ↑描画処理ここまで
